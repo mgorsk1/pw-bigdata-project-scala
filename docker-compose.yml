@@ -1,0 +1,12 @@
+version: '2.1'
+services:
+  spark:
+    build:
+      context: ./src/resources/docker
+      dockerfile: Dockerfile
+    ports:
+      - '8889:8888'
+      - '4040:4040'
+    volumes:
+      - .:/app/
+    command: "tail -f /dev/null"

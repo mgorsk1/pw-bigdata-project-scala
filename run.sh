@@ -11,5 +11,5 @@ cd /app/
 sbt clean assembly
 
 spark-submit    --class com.gorskimariusz.meetup.streaming.MeetupResponsesStreaming \
-                target/scala-2.11/helloallegro-assembly-0.2.jar pw-bd-project 5 60 0 /tmp/
+                target/scala-2.11/meetupstreaming-assembly-0.2.jar pw-bd-project 60 20 20 /tmp/
 

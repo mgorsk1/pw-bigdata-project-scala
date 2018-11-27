@@ -32,9 +32,9 @@ object MeetupUsersActivity {
     .setDelayThreshold(publishDelayThreshold)
     .build
 
+  // done
   def saveMostActive(input: DataFrame): Unit = {
     val users = input.select(col("member.member_name"), col("member.member_id"))
-                  //.withColumn("member_name", explode(col("member_name")))
                   .groupBy(col("member_id"), col("member_name"))
                   .count()
                   .where("count > 1")
@@ -47,23 +47,25 @@ object MeetupUsersActivity {
     Elasticsearch.index(users, "meetup-rascals", Option("dateForIndex"))
   }
 
-  def notifyAboutIntruder(input: DataFrame): Unit = {
+  // done
+  def notifyAboutUserInFrenzy(input: DataFrame): Unit = {
     val colsToKeep = Seq("title", "message")
 
-    val users = input.select(col("member.member_name"), col("event.event_name"), col("response"))
-      .filter(col("member_name").contains("Mariusz Górski"))
-      .withColumn("title", lit("Intruder detected!"))
+    val users = input.select(col("member.member_name"), col("member.member_id"))
+      .groupBy(col("member_name"), col("member_id"))
+      .count()
+      .where("count > 5")
+      .withColumn("title", lit("User in frenzy detected!"))
       .withColumn("message", concat(
           lit("User > "),
+          col("member_id"),
+          lit(" ("),
           col("member_name"),
-          lit(" < responded > "),
-          upper(col("response")),
-          lit(" < to event > "),
-          col("event_name"),
-          lit(" <")))
-      .select(input.columns.filter(colsToKeep.contains(_)).map(new Column(_)): _*)
-      .toJSON
-      .take(999)
+          lit(") < sent > "),
+          upper(col("count")),
+          lit(" < rsvps in 20 seconds ! This is shady - please verify !")))
+          .toJSON
+          .take(999)
 
     // proceed only if are any alerts to publish
     if (users.length > 0) {

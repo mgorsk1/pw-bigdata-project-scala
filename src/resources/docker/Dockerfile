@@ -11,12 +11,13 @@ WORKDIR /tmp/
 
 COPY jupyter_notebook_config.py /opt/app-root/src/.jupyter/
 
-RUN wget http://www-eu.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz
-RUN tar -xzf spark-2.3.1-bin-hadoop2.7.tgz
-RUN mv spark-2.3.1-bin-hadoop2.7 /opt/spark-2.3.1
-RUN ln -s /opt/spark-2.3.1 /opt/spark
+RUN wget http://www-eu.apache.org/dist/spark/spark-2.2.2/spark-2.2.2-bin-hadoop2.7.tgz
+RUN tar -xzf spark-2.2.2-bin-hadoop2.7.tgz
+RUN mv spark-2.2.2-bin-hadoop2.7 /opt/spark-2.2.2
+RUN ln -s /opt/spark-2.2.2 /opt/spark
+RUN curl https://bintray.com/sbt/rpm/rpm | tee /etc/yum.repos.d/bintray-sbt-rpm.repo
 
-RUN yum -y install java-1.8.0-openjdk-devel vim
+RUN yum -y install java-1.8.0-openjdk-devel vim sbt
 
 ENV LD_LIBRARY_PATH /opt/rh/rh-python35/root/usr/lib64:/opt/rh/rh-nodejs6/root/usr/lib64:/opt/rh/httpd24/root/usr/lib64
 ENV SPARK_HOME /opt/spark

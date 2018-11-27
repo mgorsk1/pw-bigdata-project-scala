@@ -53,10 +53,10 @@ object MeetupResponsesStreaming {
     })
 
     // pushover notification
-    val intruders = userResponses.window(Seconds(5))
+    val intruders = userResponses.window(Seconds(20), Seconds(20))
     intruders.foreachRDD(rdd => {
       val df = rdd.toDataFrame(spark)
-      MeetupUsersActivity.notifyAboutIntruder(df)
+      MeetupUsersActivity.notifyAboutUserInFrenzy(df)
     })
 
     ssc

@@ -1,19 +1,15 @@
 name          := "MeetupRSVPStreaming"
 organization  := "com.gorskimariusz"
-description   := "Final project on Postgraduate Studies (Big Data / Hadoop) - Warsaw University of Technology 2019"
+description   := "Final project on Postgraduate Studies (Big Data / Hadoop) - Warsaw University of Technology 02/2019"
 
 version := "0.1"
 
 scalaVersion := "2.11.8"
 
-val sparkVersion = "2.3.1"
+val sparkVersion = "2.2.2"
 
 PB.targets in Compile := Seq(
   scalapb.gen() -> (sourceManaged in Compile).value
-)
-
-assemblyShadeRules in assembly := Seq(
-  ShadeRule.rename("com.google.protobuf.**" -> "shadeproto.@1").inAll
 )
 
 libraryDependencies ++= Seq(
@@ -27,5 +23,4 @@ libraryDependencies ++= Seq(
   "com.google.code.gson"    % "gson"                        % "1.7.1",
   "com.thesamet.scalapb"   %% "sparksql-scalapb-gen"        % "0.7.0",
   "com.google.cloud"        % "google-cloud-pubsub"         % "1.53.0"
-
 )

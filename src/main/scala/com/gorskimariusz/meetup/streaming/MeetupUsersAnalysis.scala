@@ -43,6 +43,8 @@ object MeetupUsersAnalysis {
                   .withColumn("position", monotonically_increasing_id() + 1)
                   .where("position <= 5")
 
+    users.show()
+
     Elasticsearch.index(users, "meetup-rascals", Option("dateForIndex"))
   }
 

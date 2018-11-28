@@ -16,6 +16,8 @@ object MeetupTopicsAnalysis {
       .withColumn("position", monotonically_increasing_id() + 1)
       .where("position <= 20")
 
+    topics.show()
+
     Elasticsearch.index(topics, "meetup-topics", Option("dateForIndex"))
   }
 }

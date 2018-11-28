@@ -4,18 +4,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    networks:
-      - pw-bd-net
     ports:
       - '8889:8888'
-      - '4040:4040'
+      - '4042:4040'
     command: "run.sh"
 
-networks:
-  pw-bd-net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-      - subnet: 171.15.238.0/24
-        gateway: 171.15.238.1

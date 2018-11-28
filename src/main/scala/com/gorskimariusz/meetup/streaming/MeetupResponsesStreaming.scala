@@ -13,7 +13,7 @@ import org.apache.spark.sql.SparkSession
 import scalapb.spark._
 
 object MeetupResponsesStreaming {
-  def createContext(projectID: String, windowLength: String, batchInterval: String, checkpointDirectory: String)
+  def createContext(projectID: String, elasticHost: String, windowLength: String, batchInterval: String, checkpointDirectory: String)
   : StreamingContext = {
 
     // setup streaming
@@ -22,7 +22,7 @@ object MeetupResponsesStreaming {
       .appName("pw-bd-project-meetup")
       .master("local[2]")
       .config("es.index.auto.create", "true")
-      .config("es.nodes", "localhost")
+      .config("es.nodes", elasticHost)
       .config("es.port", "9200")
       .config("es.nodes.wan.only", "true")
       .getOrCreate()
@@ -66,12 +66,13 @@ object MeetupResponsesStreaming {
   }
 
   def main(args: Array[String]): Unit = {
-    if (args.length != 5) {
+    if (args.length != 6) {
       System.err.println(
         """
-          | Usage: MeetupResponsesStreaming <projectID> <windowLength> <slidingInterval> <totalRunningTime>
+          | Usage: MeetupResponsesStreaming <projectID> <elasticHost> <windowLength> <slidingInterval> <totalRunningTime>
           |
           |     <projectID>: ID of Google Cloud project
+          |     <elasticHost>: URL of Elasticsearch host
           |     <windowLength>: The duration of the window, in seconds
           |     <batchInterval>: The interval at which the window calculation is performed, in seconds
           |     <totalRunningTime>: Total running time for the application, in minutes. If 0, runs indefinitely until termination.
@@ -81,11 +82,11 @@ object MeetupResponsesStreaming {
       System.exit(1)
     }
 
-    val Seq(projectID, windowLength, slidingInterval, totalRunningTime, checkpointDirectory) = args.toSeq
+    val Seq(projectID, elasticHost, windowLength, slidingInterval, totalRunningTime, checkpointDirectory) = args.toSeq
 
     // Create Spark context
     val ssc = StreamingContext.getOrCreate(checkpointDirectory,
-      () => createContext(projectID, windowLength, slidingInterval, checkpointDirectory))
+      () => createContext(projectID, elasticHost, windowLength, slidingInterval, checkpointDirectory))
 
     // Start streaming until we receive an explicit termination
     ssc.start()

@@ -2,7 +2,7 @@ version: '2.1'
 services:
   spark:
     build:
-      context: ./src/resources/docker
+      context: .
       dockerfile: Dockerfile
     networks:
       - pw-bd-net

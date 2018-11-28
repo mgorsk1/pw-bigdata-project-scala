@@ -15,7 +15,7 @@ import com.google.auth.oauth2.GoogleCredentials
 import com.google.cloud.pubsub.v1.Publisher
 import org.threeten.bp.Duration
 
-object MeetupUsersActivity {
+object MeetupUsersAnalysis {
   // Google Pub/Sub Credentials
   val credentials = GoogleCredentials.fromStream(new FileInputStream("./src/resources/gcp/key.json"))
 
@@ -32,12 +32,11 @@ object MeetupUsersActivity {
     .setDelayThreshold(publishDelayThreshold)
     .build
 
-  // done
   def saveMostActive(input: DataFrame): Unit = {
     val users = input.select(col("member.member_name"), col("member.member_id"))
                   .groupBy(col("member_id"), col("member_name"))
                   .count()
-                  .where("count > 1")
+                  .where("count > 3")
                   .orderBy(desc("count"))
                   .withColumn("timestamp", lit(from_unixtime(unix_timestamp(current_timestamp(), "yyyy-MM-dd HH:mm:ss.SSS"),"yyyy-MM-dd HH:mm:ss")))
                   .withColumn("dateForIndex", date_format(current_timestamp(), "y.M.d"))
@@ -47,8 +46,7 @@ object MeetupUsersActivity {
     Elasticsearch.index(users, "meetup-rascals", Option("dateForIndex"))
   }
 
-  // done
-  def notifyAboutUserInFrenzy(input: DataFrame): Unit = {
+  def notifyAboutSuspiciousUserActivity(input: DataFrame): Unit = {
     val colsToKeep = Seq("title", "message")
 
     val users = input.select(col("member.member_name"), col("member.member_id"))

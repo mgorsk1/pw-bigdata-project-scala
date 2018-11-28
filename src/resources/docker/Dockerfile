@@ -34,3 +34,9 @@ RUN pip install findspark
 RUN pip install pyspark
 RUN pip install kafka-python
 RUN pip install faker
+
+WORKDIR /app
+
+COPY . .
+
+RUN sbt clean assembly

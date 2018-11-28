@@ -19,20 +19,17 @@ object MeetupResponsesStreaming {
     // setup streaming
     val spark = SparkSession
       .builder
-      .appName("meetup")
+      .appName("pw-bd-project-meetup")
       .master("local[2]")
       .config("es.index.auto.create", "true")
-      .config("es.nodes", "10.112.112.11")
-      .config("es.port", "9202")
+      .config("es.nodes", "localhost")
+      .config("es.port", "9200")
       .config("es.nodes.wan.only", "true")
       .getOrCreate()
 
     val sc = spark.sparkContext
     val ssc = new StreamingContext(sc, Seconds(batchInterval.toInt))
 
-//    // @todo Set the checkpoint directory
-//    val yarnTags = sparkConf.get("spark.yarn.tags")
-//    val jobId = yarnTags.split(",").filter(_.startsWith("dataproc_job")).head
     ssc.checkpoint(checkpointDirectory)
 
     // Create stream
@@ -46,17 +43,23 @@ object MeetupResponsesStreaming {
       .map(response => MSG.parseFrom(response.getData()))
 
     // elasticsearch aggregates
-    val usersInAFrenzy = userResponses.window(Seconds(60), Seconds(20))
-    usersInAFrenzy.foreachRDD(rdd => {
+    val mostActiveUsers = userResponses.window(Seconds(60), Seconds(20))
+    mostActiveUsers.foreachRDD(rdd => {
       val df = rdd.toDataFrame(spark)
-      MeetupUsersActivity.saveMostActive(df)
+      MeetupUsersAnalysis.saveMostActive(df)
+    })
+
+    val trendingTopics = userResponses.window(Seconds(60), Seconds(20))
+    trendingTopics.foreachRDD(rdd => {
+      val df = rdd.toDataFrame(spark)
+      MeetupTopicsAnalysis.saveMostPopular(df)
     })
 
     // pushover notification
-    val intruders = userResponses.window(Seconds(20), Seconds(20))
-    intruders.foreachRDD(rdd => {
+    val suspiciousUserActivity = userResponses.window(Seconds(20), Seconds(20))
+    suspiciousUserActivity.foreachRDD(rdd => {
       val df = rdd.toDataFrame(spark)
-      MeetupUsersActivity.notifyAboutUserInFrenzy(df)
+      MeetupUsersAnalysis.notifyAboutSuspiciousUserActivity(df)
     })
 
     ssc

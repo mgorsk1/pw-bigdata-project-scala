@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   "com.google.code.gson"    % "gson"                        % "1.7.1",
   "com.thesamet.scalapb"   %% "sparksql-scalapb-gen"        % "0.7.0",
   "com.google.cloud"        % "google-cloud-pubsub"         % "1.53.0",
-  "com.google.guava"        % "guava"                       % "19.0"
+  "com.google.guava"        % "guava"                       % "18.0"
 )
 
 logLevel in assembly := Level.Debug

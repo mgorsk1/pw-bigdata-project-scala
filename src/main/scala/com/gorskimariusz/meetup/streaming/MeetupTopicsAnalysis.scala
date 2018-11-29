@@ -11,13 +11,12 @@ object MeetupTopicsAnalysis {
       .groupBy(col("topic"))
       .count()
       .orderBy(desc("count"))
-      .withColumn("timestamp", lit(from_unixtime(unix_timestamp(current_timestamp(), "yyyy-MM-dd HH:mm:ss.SSS"),"yyyy-MM-dd HH:mm:ss")))
       .withColumn("dateForIndex", date_format(current_timestamp(), "y.M.d"))
       .withColumn("position", monotonically_increasing_id() + 1)
       .where("position <= 20")
 
     topics.show()
 
-    Elasticsearch.index(topics, "meetup-topics", Option("dateForIndex"))
+    Elasticsearch.index(topics, "meetup-agg-topics", Option("dateForIndex"))
   }
 }

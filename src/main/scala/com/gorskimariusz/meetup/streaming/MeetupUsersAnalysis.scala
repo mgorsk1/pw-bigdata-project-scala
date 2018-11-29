@@ -38,23 +38,27 @@ object MeetupUsersAnalysis {
                   .count()
                   .where("count > 3")
                   .orderBy(desc("count"))
-                  .withColumn("timestamp", lit(from_unixtime(unix_timestamp(current_timestamp(), "yyyy-MM-dd HH:mm:ss.SSS"),"yyyy-MM-dd HH:mm:ss")))
                   .withColumn("dateForIndex", date_format(current_timestamp(), "y.M.d"))
                   .withColumn("position", monotonically_increasing_id() + 1)
                   .where("position <= 5")
 
     users.show()
 
-    Elasticsearch.index(users, "meetup-rascals", Option("dateForIndex"))
+    Elasticsearch.index(users, "meetup-agg-users", Option("dateForIndex"))
   }
 
   def notifyAboutSuspiciousUserActivity(input: DataFrame): Unit = {
     val colsToKeep = Seq("title", "message")
 
     val users = input.select(col("member.member_name"), col("member.member_id"))
+      .withColumn("dateForIndex", date_format(current_timestamp(), "y.M.d"))
       .groupBy(col("member_name"), col("member_id"))
       .count()
       .where("count > 5")
+
+    Elasticsearch.index(users, "meetup-agg-rascals", Option("dateForIndex"))
+
+    val usersMessage = users
       .withColumn("title", lit("User in frenzy detected!"))
       .withColumn("message", concat(
           lit("User > "),
@@ -68,7 +72,7 @@ object MeetupUsersAnalysis {
           .take(999)
 
     // proceed only if are any alerts to publish
-    if (users.length > 0) {
+    if (usersMessage.length > 0) {
       val topicName = ProjectTopicName.of("pw-bd-project", "meetup-notify")
 
       val publisher = Publisher
@@ -78,7 +82,7 @@ object MeetupUsersAnalysis {
         .build
 
       try {
-        users.foreach(user => {
+        usersMessage.foreach(user => {
           println(user)
           val data = ByteString.copyFromUtf8(user)
 

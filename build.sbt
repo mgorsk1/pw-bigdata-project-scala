@@ -16,13 +16,14 @@ libraryDependencies ++= Seq(
   "com.thesamet.scalapb"   %% "scalapb-runtime"             % scalapb.compiler.Version.scalapbVersion % "protobuf",
   "org.elasticsearch"      %% "elasticsearch-spark-20"      % "6.5.0",
   "com.thesamet.scalapb"   %% "sparksql-scalapb"            % "0.7.0",
-  "com.google.code.gson"    % "gson"                        % "1.7.1",
   "com.thesamet.scalapb"   %% "sparksql-scalapb-gen"        % "0.7.0",
   "com.google.cloud"        % "google-cloud-pubsub"         % "1.53.0",
-  "com.google.guava"        % "guava"                       % "18.0"
+  "com.google.guava"        % "guava"                       % "23.0"
 )
 
 logLevel in assembly := Level.Debug
+
+assemblyShadeRules in assembly := Seq(ShadeRule.rename("com.google.**" -> "shadeio.@1").inAll)
 
 // sort out issues with deduplicate files
 assemblyMergeStrategy in assembly := {
@@ -31,7 +32,7 @@ assemblyMergeStrategy in assembly := {
   case PathList("javax", "servlet", xs @ _*) => MergeStrategy.last
   case PathList("javax", "activation", xs @ _*) => MergeStrategy.last
   case PathList("org", "apache", xs @ _*) => MergeStrategy.last
-  case PathList("com", "google", xs @ _*) => MergeStrategy.last
+//  case PathList("com", "google", xs @ _*) => MergeStrategy.first
   case PathList("com", "esotericsoftware", xs @ _*) => MergeStrategy.last
   case PathList("com", "codahale", xs @ _*) => MergeStrategy.last
   case PathList("com", "yammer", xs @ _*) => MergeStrategy.last
@@ -56,9 +57,7 @@ assemblyMergeStrategy in assembly := {
   case "plugin.properties" => MergeStrategy.last
   case "log4j.properties" => MergeStrategy.last
   case "overview.html" => MergeStrategy.last
-  case x =>
-    val oldStrategy = (assemblyMergeStrategy in assembly).value
-    oldStrategy(x)
+  case x => MergeStrategy.last
 }
 
 PB.targets in Compile := Seq(

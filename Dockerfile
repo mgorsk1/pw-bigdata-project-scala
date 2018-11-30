@@ -1,7 +1,7 @@
 FROM centos/python-35-centos7
 MAINTAINER gorskimariusz13@gmail.com
 
-LABEL "com.gorskimariusz.project"="pw-bd-project-spark"
+LABEL "com.gorskimariusz.project"="pw-bd-project"
 
 USER root
 

@@ -38,7 +38,7 @@ object MeetupUsersAnalysis {
                   .count()
                   .where("count > 3")
                   .orderBy(desc("count"))
-                  .withColumn("dateForIndex", date_format(current_timestamp(), "y.M.d"))
+                  .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
                   .withColumn("position", monotonically_increasing_id() + 1)
                   .where("position <= 5")
 
@@ -51,7 +51,7 @@ object MeetupUsersAnalysis {
     val colsToKeep = Seq("title", "message")
 
     val users = input.select(col("member.member_name"), col("member.member_id"))
-      .withColumn("dateForIndex", date_format(current_timestamp(), "y.M.d"))
+      .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
       .groupBy(col("member_name"), col("member_id"), col("dateForIndex"))
       .count()
       .where("count > 5")

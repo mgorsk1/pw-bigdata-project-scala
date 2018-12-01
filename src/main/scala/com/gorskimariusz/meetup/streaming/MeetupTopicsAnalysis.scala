@@ -11,7 +11,7 @@ object MeetupTopicsAnalysis {
       .groupBy(col("topic"))
       .count()
       .orderBy(desc("count"))
-      .withColumn("dateForIndex", date_format(current_timestamp(), "y.M.d"))
+      .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
       .withColumn("position", monotonically_increasing_id() + 1)
       .where("position <= 20")
 

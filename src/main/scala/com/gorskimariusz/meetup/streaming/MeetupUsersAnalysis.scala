@@ -42,8 +42,6 @@ object MeetupUsersAnalysis {
                   .withColumn("position", monotonically_increasing_id() + 1)
                   .where("position <= 5")
 
-    users.show()
-
     Elasticsearch.index(users, "meetup-agg-users", Option("dateForIndex"))
   }
 
@@ -54,7 +52,7 @@ object MeetupUsersAnalysis {
       .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
       .groupBy(col("member_name"), col("member_id"), col("dateForIndex"))
       .count()
-      .where("count > 5")
+      .where("count > 6")
 
     Elasticsearch.index(users, "meetup-agg-rascals", Option("dateForIndex"))
 

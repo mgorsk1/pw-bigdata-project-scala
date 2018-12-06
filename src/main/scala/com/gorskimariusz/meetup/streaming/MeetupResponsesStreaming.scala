@@ -56,7 +56,7 @@ object MeetupResponsesStreaming {
     })
 
     // pushover notification
-    val suspiciousUserActivity = userResponses.window(Seconds(20), Seconds(20))
+    val suspiciousUserActivity = userResponses.window(Seconds(20))
     suspiciousUserActivity.foreachRDD(rdd => {
       val df = rdd.toDataFrame(spark)
       MeetupUsersAnalysis.notifyAboutSuspiciousUserActivity(df)

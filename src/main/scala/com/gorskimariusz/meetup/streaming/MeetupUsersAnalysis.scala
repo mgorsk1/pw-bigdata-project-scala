@@ -5,6 +5,7 @@ import java.io.FileInputStream
 import com.gorskimariusz.meetup.Elasticsearch
 import org.apache.spark.sql.{DataFrame, Column}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.expressions.Window
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage}
 import java.util.concurrent.TimeUnit
@@ -33,6 +34,8 @@ object MeetupUsersAnalysis {
     .build
 
   def saveMostActive(input: DataFrame): Unit = {
+    val rankWindow = Window.orderBy(desc("count"))
+
     val users = input
       .select(col("member.member_name"), col("member.member_id"))
       .groupBy(col("member_id"), col("member_name"))
@@ -40,7 +43,7 @@ object MeetupUsersAnalysis {
       .orderBy(desc("count"))
       .limit(5)
       .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
-      .withColumn("position", monotonically_increasing_id() + 1)
+      .withColumn("position", dense_rank().over(rankWindow))
 
     Elasticsearch.index(users, "meetup-agg-users", Option("dateForIndex"))
   }

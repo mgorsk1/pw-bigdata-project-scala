@@ -33,13 +33,14 @@ object MeetupUsersAnalysis {
     .build
 
   def saveMostActive(input: DataFrame): Unit = {
-    val users = input.select(col("member.member_name"), col("member.member_id"))
-                  .groupBy(col("member_id"), col("member_name"))
-                  .count()
-                  .where("count > 3")
-                  .orderBy(desc("count"))
-                  .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
-                  .limit(5)
+    val users = input
+      .select(col("member.member_name"), col("member.member_id"))
+      .groupBy(col("member_id"), col("member_name"))
+      .count()
+      .orderBy(desc("count"))
+      .limit(5)
+      .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
+      .withColumn("position", monotonically_increasing_id() + 1)
 
     Elasticsearch.index(users, "meetup-agg-users", Option("dateForIndex"))
   }
@@ -47,7 +48,8 @@ object MeetupUsersAnalysis {
   def notifyAboutSuspiciousUserActivity(input: DataFrame): Unit = {
     val colsToKeep = Seq("title", "message")
 
-    val users = input.select(col("member.member_name"), col("member.member_id"))
+    val users = input
+      .select(col("member.member_name"), col("member.member_id"))
       .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
       .groupBy(col("member_name"), col("member_id"), col("dateForIndex"))
       .count()

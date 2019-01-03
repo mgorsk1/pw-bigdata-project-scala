@@ -42,7 +42,7 @@ object MeetupUsersAnalysis {
       .count()
       .orderBy(desc("count"))
       .limit(5)
-      .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
+      .withColumn("dateForIndex", date_format(unix_timestamp(), "y.MM.dd"))
       .withColumn("position", dense_rank().over(rankWindow))
 
     Elasticsearch.index(users, "meetup-agg-users", Option("dateForIndex"))

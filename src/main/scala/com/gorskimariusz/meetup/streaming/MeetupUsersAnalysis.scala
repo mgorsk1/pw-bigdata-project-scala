@@ -5,6 +5,7 @@ import java.io.FileInputStream
 import com.gorskimariusz.meetup.Elasticsearch
 import org.apache.spark.sql.{DataFrame, Column}
 import org.apache.spark.sql.functions._
+import org.apache.spark.sql.expressions.Window
 import com.google.protobuf.ByteString
 import com.google.pubsub.v1.{ProjectTopicName, PubsubMessage}
 import java.util.concurrent.TimeUnit
@@ -33,13 +34,16 @@ object MeetupUsersAnalysis {
     .build
 
   def saveMostActive(input: DataFrame): Unit = {
-    val users = input.select(col("member.member_name"), col("member.member_id"))
-                  .groupBy(col("member_id"), col("member_name"))
-                  .count()
-                  .where("count > 3")
-                  .orderBy(desc("count"))
-                  .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
-                  .limit(5)
+    val rankWindow = Window.orderBy(desc("count"))
+
+    val users = input
+      .select(col("member.member_name"), col("member.member_id"))
+      .groupBy(col("member_id"), col("member_name"))
+      .count()
+      .orderBy(desc("count"))
+      .limit(5)
+      .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
+      .withColumn("position", dense_rank().over(rankWindow))
 
     Elasticsearch.index(users, "meetup-agg-users", Option("dateForIndex"))
   }
@@ -47,8 +51,9 @@ object MeetupUsersAnalysis {
   def notifyAboutSuspiciousUserActivity(input: DataFrame): Unit = {
     val colsToKeep = Seq("title", "message")
 
-    val users = input.select(col("member.member_name"), col("member.member_id"))
-      .withColumn("dateForIndex", date_format(unix_timestamp(), "y.MM.dd"))
+    val users = input
+      .select(col("member.member_name"), col("member.member_id"))
+      .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
       .groupBy(col("member_name"), col("member_id"), col("dateForIndex"))
       .count()
       .where("count > 6")

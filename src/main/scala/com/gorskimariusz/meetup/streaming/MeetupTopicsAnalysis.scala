@@ -11,7 +11,7 @@ object MeetupTopicsAnalysis {
       .groupBy(col("topic"))
       .count()
       .orderBy(desc("count"))
-      .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
+      .withColumn("dateForIndex", date_format(unix_timestamp(), "y.MM.dd"))
       .limit(20)
 
     Elasticsearch.index(topics, "meetup-agg-topics", Option("dateForIndex"))

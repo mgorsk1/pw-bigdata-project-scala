@@ -48,7 +48,7 @@ object MeetupUsersAnalysis {
     val colsToKeep = Seq("title", "message")
 
     val users = input.select(col("member.member_name"), col("member.member_id"))
-      .withColumn("dateForIndex", date_format(current_timestamp(), "y.MM.dd"))
+      .withColumn("dateForIndex", date_format(unix_timestamp(), "y.MM.dd"))
       .groupBy(col("member_name"), col("member_id"), col("dateForIndex"))
       .count()
       .where("count > 6")
